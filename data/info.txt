@@ -1,0 +1,4 @@
+Estandar,una habitación con cama queen y aire acondicionado,3
+Deluxe,una habitación con cama queen y aire acondicionado,3
+VIP,una habitación con cama queen y aire acondicionado,3
+Estandar,una habitación con cama queen y aire acondicionado,3
