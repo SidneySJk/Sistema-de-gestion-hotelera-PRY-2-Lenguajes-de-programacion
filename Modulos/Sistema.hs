@@ -13,6 +13,7 @@ data Sistema = Sistema
   , sigIdFactura :: Int
   } deriving (Show, Read)
 
+
 mainSistema :: IO()
 mainSistema = do 
     putStrLn "Sistema gestor de hoteles"

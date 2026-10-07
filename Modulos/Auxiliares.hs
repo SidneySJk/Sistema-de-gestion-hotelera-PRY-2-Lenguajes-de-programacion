@@ -5,3 +5,4 @@ import Data.List
 separarPor separador cadena = do
     let lista = filter (/= separador) cadena
     return lista
+

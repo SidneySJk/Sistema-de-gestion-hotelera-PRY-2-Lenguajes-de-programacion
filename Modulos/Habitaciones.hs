@@ -37,9 +37,22 @@ listaTiposHabitaciones ruta = do
     putStrLn "Se formateo el archivo."
     return [x | Just x <- map parsearLinea lineas]
 
-crearHabitaciones :: TipoHabitacion -> [Habitacion]
-crearHabitaciones t = do
-    [Habitacion i (tipo t) False | i <- [1..(cantidadHuespedes t)]]
+crearHabitaciones :: TipoHabitacion -> Int -> [Habitacion]
+crearHabitaciones t cantidadHabitaciones = do
+    [Habitacion i (tipo t) False | i <- [1..cantidadHabitaciones]]
+
+validarTipoHabitacion :: [TipoHabitacion] -> String -> Bool
+validarTipoHabitacion tipos cadena = any (\t -> tipo t  == cadena) tipos
+
+validarTiposHabitaciones :: [TipoHabitacion] -> TipoHabitacion -> [TipoHabitacion]
+validarTiposHabitaciones tipos nuevoTipo 
+    | validarTipoHabitacion tipos (tipo nuevoTipo) = tipos
+    | otherwise = tipos ++ [nuevoTipo]
+
+mostrarHabitaciones :: [Habitacion] -> IO()
+mostrarHabitaciones habitaciones = do
+    putStrLn "Lista de habitaciones:\n"
+    map (\x -> putStrLn $ "ID: " ++ show (idHabitacion x) ++ ", Tipo: " ++ tipoHabitacion x ++ "\n") habitaciones
 
 
 mainHabitaciones :: IO()
