@@ -1,0 +1,14 @@
+# Archivos que genera GHC al compilar
+*.hi
+*.o
+*.dyn_hi
+*.dyn_o
+
+# Ejecutables
+*.exe
+hotel
+
+# Carpetas de build (por si usan cabal o stack)
+dist/
+dist-newstyle/
+.stack-work/
