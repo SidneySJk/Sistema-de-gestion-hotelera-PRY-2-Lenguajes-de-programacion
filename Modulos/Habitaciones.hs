@@ -4,6 +4,7 @@ import System.IO
 import Modulos.Auxiliares as Aux
 import Control.Exception (catch, IOException)
 import Distribution.Compat.Prelude (readMaybe)
+import Text.Read (readMaybe)
 
 data TipoHabitacion = TipoHabitacion {
     tipo :: String,
@@ -33,13 +34,12 @@ parsearLinea linea =
 listaTiposHabitaciones :: FilePath -> IO [TipoHabitacion]
 listaTiposHabitaciones ruta = do
     contenido <- readFile ruta
-    let lineas = filter (not . null) (lines contenido)
+    let lineas = filter (not . null) (map (filter (/= '\r')) (lines contenido))
     putStrLn "Se formateo el archivo."
     return [x | Just x <- map parsearLinea lineas]
 
-crearHabitaciones :: TipoHabitacion -> Int -> [Habitacion]
-crearHabitaciones t cantidadHabitaciones = do
-    [Habitacion i (tipo t) False | i <- [1..cantidadHabitaciones]]
+crearHabitaciones :: Int -> TipoHabitacion -> Int -> [Habitacion]
+crearHabitaciones inicio t n = [Habitacion i (tipo t) False | i <- [inicio .. inicio + n - 1]]
 
 validarTipoHabitacion :: [TipoHabitacion] -> String -> Bool
 validarTipoHabitacion tipos cadena = any (\t -> tipo t  == cadena) tipos
@@ -52,7 +52,7 @@ validarTiposHabitaciones tipos nuevoTipo
 mostrarHabitaciones :: [Habitacion] -> IO()
 mostrarHabitaciones habitaciones = do
     putStrLn "Lista de habitaciones:\n"
-    map (\x -> putStrLn $ "ID: " ++ show (idHabitacion x) ++ ", Tipo: " ++ tipoHabitacion x ++ "\n") habitaciones
+    mapM_ (\h -> putStrLn $ "ID: " ++ show (idHabitacion h) ++ ", Tipo: " ++ tipoHabitacion h) habitaciones
 
 
 mainHabitaciones :: IO()
