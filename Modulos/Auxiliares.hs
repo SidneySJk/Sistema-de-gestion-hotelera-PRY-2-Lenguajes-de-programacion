@@ -2,7 +2,8 @@
 
 module Modulos.Auxiliares where
 import Data.List    
-separarPor separador cadena = do
-    let lista = filter (/= separador) cadena
-    return lista
+separarPor :: Char -> String -> [String]
+separarPor sep cadena = case break (== sep) cadena of
+    (antes, [])      -> [antes]
+    (antes, _:resto) -> antes : separarPor sep resto
 
