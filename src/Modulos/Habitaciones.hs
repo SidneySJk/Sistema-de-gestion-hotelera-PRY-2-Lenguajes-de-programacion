@@ -1,9 +1,18 @@
+-- module Modulos.Habitaciones where
+-- import Modulos.Auxiliares as Aux
+-- import Data.List
+-- import System.IO
+-- import Control.Exception (catch, IOException)
+-- import Distribution.Compat.Prelude (readMaybe)
+
 module Modulos.Habitaciones where
+import Control.Exception (catch, IOException)
 import Data.List
 import System.IO
-import Modulos.Auxiliares as Aux
-import Control.Exception (catch, IOException)
-import Distribution.Compat.Prelude (readMaybe)
+import Text.Read (readMaybe)
+import qualified Modulos.Auxiliares as Aux
+-- import Distribution.Compat.Prelude (reads)
+
 
 data TipoHabitacion = TipoHabitacion {
     tipo :: String,
@@ -52,24 +61,52 @@ validarTiposHabitaciones tipos nuevoTipo
 mostrarHabitaciones :: [Habitacion] -> IO()
 mostrarHabitaciones habitaciones = do
     putStrLn "Lista de habitaciones:\n"
-    map (\x -> putStrLn $ "ID: " ++ show (idHabitacion x) ++ ", Tipo: " ++ tipoHabitacion x ++ "\n") habitaciones
+    mapM_ (\x -> putStrLn $ "ID: " ++ show (idHabitacion x) ++ ", Tipo: " ++ tipoHabitacion x ++ "\n") habitaciones
 
+validarRuta :: String -> IO Bool
+validarRuta ruta = do
+    (readFile ruta >> return True) `catch` (\e -> do
+        let _ = e :: IOException
+        return False)
+
+cargarArchivo existe ruta = 
+    if existe then do 
+        tipos <- listaTiposHabitaciones ruta
+        putStrLn "Ruta valida. Procesando archivo..." 
+    else putStrLn "Ruta no válida. Intenta de nuevo."
+        
+validarCantidad :: String -> IO ()
+validarCantidad cantidad =
+    if (readMaybe cantidad :: Maybe Int) == Nothing then do
+        putStrLn "Cantidad no válida. Intenta de nuevo."
+        mainHabitaciones
+    else if read cantidad < 0 then do 
+        putStrLn "Cantidad no válida. Intenta de nuevo."
+        
+    else do
+        putStrLn "Cantidad válida. Procesando..."
+        
 
 mainHabitaciones :: IO()
 mainHabitaciones = do
     putStrLn "Bienvenido al hotel."
     putStrLn "¿Qué deseas hacer?"
-    putStrLn "1. Mirar alrededor"
-    putStrLn "2. Abrir la puerta"
+    putStrLn "1. Cargar tipo de habitaciones"
+    putStrLn "2. Asignar Cantidad de habitaciones por tipo"
     putStrLn "3. Salir"
     opcion <- getLine
     case opcion of
         "1" -> do
             putStrLn "Ingrese una ruta: \n"
             ruta <- getLine
-            tipos <- listaTiposHabitaciones ruta
-            putStrLn "M"
-            mainHabitaciones        
-        _   -> do
-            putStrLn "Opción no válida. Intenta de nuevo."
+            existe <- validarRuta ruta
+            cargarArchivo existe ruta
             mainHabitaciones
+        "2" -> do
+            putStrLn "Ingrese la cantidad de habitaciones por tipo: \n"
+            cantidad <- getLine
+            validarCantidad cantidad
+        "3" -> do
+            putStrLn "Saliendo..."
+        _   -> do
+            return ()
