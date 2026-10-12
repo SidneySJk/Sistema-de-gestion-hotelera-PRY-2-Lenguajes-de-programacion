@@ -1,6 +1,5 @@
 module Main where
-import Modulos.Habitaciones
+import Modulos.Sistema
 
-main :: IO()
-main = do
-    mainHabitaciones
+main :: IO ()
+main = menuPrincipal sistemaInicial
