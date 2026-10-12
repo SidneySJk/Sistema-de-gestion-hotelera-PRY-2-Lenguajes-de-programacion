@@ -69,26 +69,38 @@ validarRuta ruta = do
         let _ = e :: IOException
         return False)
 
-cargarArchivo existe ruta = 
+cargarArchivo :: Bool -> [TipoHabitacion] -> [Habitacion] -> FilePath -> IO ()
+cargarArchivo existe tipos habitaciones ruta = 
     if existe then do 
-        tipos <- listaTiposHabitaciones ruta
-        putStrLn "Ruta valida. Procesando archivo..." 
-    else putStrLn "Ruta no válida. Intenta de nuevo."
+        nuevos <- listaTiposHabitaciones ruta
+        let filtrarTipos = foldl validarTiposHabitaciones tipos nuevos
+        putStrLn ("Tipos cargados: " ++ show (length filtrarTipos))
+        mainHabitaciones filtrarTipos habitaciones 
+    else putStrLn "Ruta no válida. Intente de nuevo."
         
-validarCantidad :: String -> IO ()
-validarCantidad cantidad =
-    if (readMaybe cantidad :: Maybe Int) == Nothing then do
-        putStrLn "Cantidad no válida. Intenta de nuevo."
-        mainHabitaciones
-    else if read cantidad < 0 then do 
-        putStrLn "Cantidad no válida. Intenta de nuevo."
-        
-    else do
-        putStrLn "Cantidad válida. Procesando..."
-        
+ingresarCantidad :: TipoHabitacion -> IO Int
+ingresarCantidad t = do
+    putStr ("Cantidad de habitaciones tipo '" ++ tipo t ++ "': ")
+    hFlush stdout
+    cantidad <- getLine
+    case readMaybe cantidad :: Maybe Int of
+        Just n | n >= 0 -> return n
+        _ -> do
+            putStrLn "Cantidad inválida. Intente de nuevo."
+            ingresarCantidad t
 
-mainHabitaciones :: IO()
-mainHabitaciones = do
+asignarCantidadPorTipo :: [TipoHabitacion] -> IO [Habitacion]
+asignarCantidadPorTipo tipos = do
+    grupos <- mapM (\t -> crearHabitaciones t <$> ingresarCantidad t) tipos
+    return (renumerar (concat grupos))
+
+renumerar :: [Habitacion] -> [Habitacion]
+renumerar = zipWith (\i h -> h { idHabitacion = i }) [1..]
+
+    
+
+mainHabitaciones :: [TipoHabitacion] -> [Habitacion] -> IO()
+mainHabitaciones tipos habitaciones = do
     putStrLn "Bienvenido al hotel."
     putStrLn "¿Qué deseas hacer?"
     putStrLn "1. Cargar tipo de habitaciones"
@@ -100,13 +112,23 @@ mainHabitaciones = do
             putStrLn "Ingrese una ruta: \n"
             ruta <- getLine
             existe <- validarRuta ruta
-            cargarArchivo existe ruta
-            mainHabitaciones
-        "2" -> do
-            putStrLn "Ingrese la cantidad de habitaciones por tipo: \n"
-            cantidad <- getLine
-            validarCantidad cantidad
+            cargarArchivo existe tipos habitaciones ruta
+            mainHabitaciones tipos habitaciones
+
+        "2" | not (null habitaciones) -> do
+            putStrLn "Las habitaciones ya fueron generadas. No se puede repetir."
+            mainHabitaciones tipos habitaciones
+            | null tipos -> do
+            putStrLn "Primero debes cargar los tipos de habitación."
+            mainHabitaciones tipos habitaciones
+            | otherwise -> do
+            putStrLn "| CANTIDAD POR TIPO | \n"
+            generadas <- asignarCantidadPorTipo tipos
+            mostrarHabitaciones generadas
+            mainHabitaciones tipos generadas
+
         "3" -> do
             putStrLn "Saliendo..."
         _   -> do
-            return ()
+            putStrLn "Opción no válida. Intenta de nuevo."
+            mainHabitaciones tipos habitaciones
