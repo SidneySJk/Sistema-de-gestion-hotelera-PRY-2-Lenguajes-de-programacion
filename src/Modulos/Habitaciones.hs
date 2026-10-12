@@ -98,9 +98,8 @@ renumerar :: [Habitacion] -> [Habitacion]
 renumerar = zipWith (\i h -> h { idHabitacion = i }) [1..]
 
     
-
-mainHabitaciones :: [TipoHabitacion] -> [Habitacion] -> IO()
-mainHabitaciones tipos habitaciones = do
+menuHabitaciones :: [TipoHabitacion] -> [Habitacion] -> IO()
+menuHabitaciones tipos habitaciones = do
     putStrLn "Bienvenido al hotel."
     putStrLn "¿Qué deseas hacer?"
     putStrLn "1. Cargar tipo de habitaciones"
@@ -113,22 +112,25 @@ mainHabitaciones tipos habitaciones = do
             ruta <- getLine
             existe <- validarRuta ruta
             cargarArchivo existe tipos habitaciones ruta
-            mainHabitaciones tipos habitaciones
+            menuHabitaciones tipos habitaciones
 
         "2" | not (null habitaciones) -> do
             putStrLn "Las habitaciones ya fueron generadas. No se puede repetir."
-            mainHabitaciones tipos habitaciones
+            menuHabitaciones tipos habitaciones
             | null tipos -> do
             putStrLn "Primero debes cargar los tipos de habitación."
-            mainHabitaciones tipos habitaciones
+            menuHabitaciones tipos habitaciones
             | otherwise -> do
             putStrLn "| CANTIDAD POR TIPO | \n"
             generadas <- asignarCantidadPorTipo tipos
             mostrarHabitaciones generadas
-            mainHabitaciones tipos generadas
+            menuHabitaciones tipos generadas
 
         "3" -> do
             putStrLn "Saliendo..."
         _   -> do
             putStrLn "Opción no válida. Intenta de nuevo."
-            mainHabitaciones tipos habitaciones
+            menuHabitaciones tipos habitaciones
+
+mainHabitaciones ::  IO()
+mainHabitaciones = menuHabitaciones [] []
