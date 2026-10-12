@@ -9,6 +9,8 @@ data InfoHotel = InfoHotel{
     hotelProvincia :: String
   } deriving (Show, Read, Eq)
 
+
+
 mainInfo :: IO()
 mainInfo = do
     putStrLn "info"

@@ -46,9 +46,8 @@ listaTiposHabitaciones ruta = do
     putStrLn "Se formateo el archivo."
     return [x | Just x <- map parsearLinea lineas]
 
-crearHabitaciones :: TipoHabitacion -> Int -> [Habitacion]
-crearHabitaciones t cantidadHabitaciones = do
-    [Habitacion i (tipo t) False | i <- [1..cantidadHabitaciones]]
+crearHabitaciones :: Int -> TipoHabitacion -> Int -> [Habitacion]
+crearHabitaciones inicio t n = [Habitacion i (tipo t) False | i <- [inicio .. inicio + n - 1]]
 
 validarTipoHabitacion :: [TipoHabitacion] -> String -> Bool
 validarTipoHabitacion tipos cadena = any (\t -> tipo t  == cadena) tipos
@@ -69,15 +68,17 @@ validarRuta ruta = do
         let _ = e :: IOException
         return False)
 
-cargarArchivo :: Bool -> [TipoHabitacion] -> [Habitacion] -> FilePath -> IO ()
-cargarArchivo existe tipos habitaciones ruta = 
+cargarArchivo :: Bool -> [TipoHabitacion] -> FilePath -> IO [TipoHabitacion]
+cargarArchivo existe tipos ruta = 
     if existe then do 
         nuevos <- listaTiposHabitaciones ruta
         let filtrarTipos = foldl validarTiposHabitaciones tipos nuevos
         putStrLn ("Tipos cargados: " ++ show (length filtrarTipos))
-        mainHabitaciones filtrarTipos habitaciones 
-    else putStrLn "Ruta no válida. Intente de nuevo."
-        
+        return filtrarTipos
+    else do
+        putStrLn "Ruta no válida. Intente de nuevo."
+        return tipos
+
 ingresarCantidad :: TipoHabitacion -> IO Int
 ingresarCantidad t = do
     putStr ("Cantidad de habitaciones tipo '" ++ tipo t ++ "': ")
@@ -91,7 +92,7 @@ ingresarCantidad t = do
 
 asignarCantidadPorTipo :: [TipoHabitacion] -> IO [Habitacion]
 asignarCantidadPorTipo tipos = do
-    grupos <- mapM (\t -> crearHabitaciones t <$> ingresarCantidad t) tipos
+    grupos <- mapM (\t -> crearHabitaciones 1 t <$> ingresarCantidad t) tipos
     return (renumerar (concat grupos))
 
 renumerar :: [Habitacion] -> [Habitacion]
@@ -111,10 +112,11 @@ menuHabitaciones tipos habitaciones = do
             putStrLn "Ingrese una ruta: \n"
             ruta <- getLine
             existe <- validarRuta ruta
-            cargarArchivo existe tipos habitaciones ruta
-            menuHabitaciones tipos habitaciones
+            nuevosTipos <- cargarArchivo existe tipos ruta
+            menuHabitaciones nuevosTipos habitaciones
 
-        "2" | not (null habitaciones) -> do
+        "2" 
+            | not (null habitaciones) -> do
             putStrLn "Las habitaciones ya fueron generadas. No se puede repetir."
             menuHabitaciones tipos habitaciones
             | null tipos -> do
