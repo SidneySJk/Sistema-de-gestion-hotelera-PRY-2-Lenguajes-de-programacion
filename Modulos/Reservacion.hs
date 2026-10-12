@@ -1,5 +1,6 @@
 module Modulos.Reservacion where
 import Modulos.Habitaciones
+import Modulos.Info
 import Modulos.Auxiliares (separarPor)
 import Data.Time.Calendar
 import Text.Read (readMaybe)
@@ -148,3 +149,44 @@ crearReserva habs tipos tarifas reservas nuevoId nombre fechaHora
     errores = [e | Just e <- map (validarSolicitud tipos) solicitudes]
     sumaA   = sum [a | (_, a, _) <- solicitudes]
     sumaN   = sum [n | (_, _, n) <- solicitudes]
+anularReserva :: Int -> Map.Map Int Reserva -> Either String (Map.Map Int Reserva)
+anularReserva = cambiarEstado Cancelada
+
+facturarReserva :: Int -> Map.Map Int Reserva -> Either String (Map.Map Int Reserva)
+facturarReserva = cambiarEstado Facturada
+
+cambiarEstado :: EstadoReservacion -> Int -> Map.Map Int Reserva -> Either String (Map.Map Int Reserva)
+cambiarEstado nuevo idRes reservas =
+    case Map.lookup idRes reservas of
+        Nothing -> Left "La reservación no existe."
+        Just r
+            | reservaEstado r /= Activa ->
+                Left ("La reservación no está activa (estado: " ++ show (reservaEstado r) ++ ").")
+            | otherwise -> Right (Map.insert idRes r { reservaEstado = nuevo } reservas)
+
+habitacionesDisponibles :: Day -> [Habitacion] -> Map.Map Int Reserva -> [Habitacion]
+habitacionesDisponibles d habs reservas =
+    filter (\h -> ocupadaEn d (idHabitacion h) reservas == Nothing) habs
+
+impuesto :: Double -> Double
+impuesto subtotal = subtotal * 0.13
+
+mostrarFactura :: Int -> InfoHotel -> Reserva -> IO ()
+mostrarFactura idFactura hotel r = do
+    let subtotal = reservaSubtotal r
+        iva      = impuesto subtotal
+    putStrLn "========================================"
+    putStrLn $ "FACTURA #" ++ show idFactura
+    putStrLn $ "Reserva #" ++ show (reservaId r)
+    putStrLn "----------------------------------------"
+    putStrLn $ hotelNombre hotel
+    putStrLn $ "Cédula jurídica: " ++ hotelCedulaJuridica hotel
+    putStrLn $ "Sitio web:       " ++ hotelSitioWeb hotel
+    putStrLn $ "Teléfono:        " ++ hotelTelefono hotel
+    putStrLn $ "Ubicación:       " ++ hotelProvincia hotel ++ ", " ++ hotelPais hotel
+    putStrLn "----------------------------------------"
+    putStrLn $ "Subtotal:        " ++ show subtotal
+    putStrLn $ "IVA (13%):       " ++ show iva
+    putStrLn $ "Total:           " ++ show (subtotal + iva)
+    putStrLn "\nDetalle de la reservación:"
+    mostrarReserva r
