@@ -53,22 +53,3 @@ mostrarHabitaciones habitaciones = do
     putStrLn "Lista de habitaciones:\n"
     mapM_ (\h -> putStrLn $ "ID: " ++ show (idHabitacion h) ++ ", Tipo: " ++ tipoHabitacion h) habitaciones
 
-
-mainHabitaciones :: IO()
-mainHabitaciones = do
-    putStrLn "Bienvenido al hotel."
-    putStrLn "¿Qué deseas hacer?"
-    putStrLn "1. Mirar alrededor"
-    putStrLn "2. Abrir la puerta"
-    putStrLn "3. Salir"
-    opcion <- getLine
-    case opcion of
-        "1" -> do
-            putStrLn "Ingrese una ruta: \n"
-            ruta <- getLine
-            tipos <- listaTiposHabitaciones ruta
-            putStrLn "M"
-            mainHabitaciones        
-        _   -> do
-            putStrLn "Opción no válida. Intenta de nuevo."
-            mainHabitaciones

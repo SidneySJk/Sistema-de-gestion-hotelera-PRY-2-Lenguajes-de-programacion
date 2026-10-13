@@ -107,11 +107,11 @@ validarSolicitud tipos (t, a, n) =
     case Map.lookup t tipos of
         Nothing -> Just ("El tipo " ++ t ++ " no existe.")
         Just th
-            | a < 0 || n < 0 -> Just "Los huéspedes no pueden ser negativos."
-            | a + n < 1      -> Just "Cada habitación debe tener al menos un huésped."
+            | a < 0 || n < 0 -> Just "Los huespedes no pueden ser negativos."
+            | a + n < 1      -> Just "Cada habitacion debe tener al menos un huesped."
             | a + n > cantidadHuespedes th ->
-                Just ("El tipo " ++ t ++ " permite máximo "
-                      ++ show (cantidadHuespedes th) ++ " huéspedes.")
+                Just ("El tipo " ++ t ++ " permite maximo "
+                      ++ show (cantidadHuespedes th) ++ " huespedes.")
             | otherwise -> Nothing
 
 crearReserva :: [Habitacion] -> Map.Map String TipoHabitacion -> Map.Map Int Double
@@ -122,14 +122,14 @@ crearReserva habs tipos tarifas reservas nuevoId nombre fechaHora
              entrada salida totalA totalN solicitudes
     | null habs                 = Left "Primero se deben generar las habitaciones del hotel."
     | Map.size tarifas < 8      = Left "Primero se deben cargar las tarifas."
-    | null nombre               = Left "El nombre no puede estar vacío."
+    | null nombre               = Left "El nombre no puede estar vacio."
     | salida <= entrada         = Left "La salida debe ser posterior a la entrada."
     | totalA < 0 || totalN < 0  = Left "Los totales no pueden ser negativos."
     | totalA + totalN < 1       = Left "Se debe reservar al menos una persona."
-    | null solicitudes          = Left "Se debe reservar al menos una habitación."
+    | null solicitudes          = Left "Se debe reservar al menos una habitacion."
     | (err : _) <- errores      = Left err
     | sumaA /= totalA || sumaN /= totalN =
-        Left "La suma de huéspedes por habitación no coincide con los totales."
+        Left "La suma de huespedes por habitacion no coincide con los totales."
     | otherwise =
         case asignarHabitaciones entrada salida habs reservas solicitudes of
             Nothing -> Left "No hay disponibilidad para las habitaciones solicitadas en esas fechas."
@@ -158,10 +158,10 @@ facturarReserva = cambiarEstado Facturada
 cambiarEstado :: EstadoReservacion -> Int -> Map.Map Int Reserva -> Either String (Map.Map Int Reserva)
 cambiarEstado nuevo idRes reservas =
     case Map.lookup idRes reservas of
-        Nothing -> Left "La reservación no existe."
+        Nothing -> Left "La reservacion no existe."
         Just r
             | reservaEstado r /= Activa ->
-                Left ("La reservación no está activa (estado: " ++ show (reservaEstado r) ++ ").")
+                Left ("La reservacion no esta activa (estado: " ++ show (reservaEstado r) ++ ").")
             | otherwise -> Right (Map.insert idRes r { reservaEstado = nuevo } reservas)
 
 habitacionesDisponibles :: Day -> [Habitacion] -> Map.Map Int Reserva -> [Habitacion]
@@ -180,13 +180,13 @@ mostrarFactura idFactura hotel r = do
     putStrLn $ "Reserva #" ++ show (reservaId r)
     putStrLn "----------------------------------------"
     putStrLn $ hotelNombre hotel
-    putStrLn $ "Cédula jurídica: " ++ hotelCedulaJuridica hotel
+    putStrLn $ "Cedula juridica: " ++ hotelCedulaJuridica hotel
     putStrLn $ "Sitio web:       " ++ hotelSitioWeb hotel
-    putStrLn $ "Teléfono:        " ++ hotelTelefono hotel
-    putStrLn $ "Ubicación:       " ++ hotelProvincia hotel ++ ", " ++ hotelPais hotel
+    putStrLn $ "Telefono:        " ++ hotelTelefono hotel
+    putStrLn $ "Ubicacion:       " ++ hotelProvincia hotel ++ ", " ++ hotelPais hotel
     putStrLn "----------------------------------------"
     putStrLn $ "Subtotal:        " ++ show subtotal
     putStrLn $ "IVA (13%):       " ++ show iva
     putStrLn $ "Total:           " ++ show (subtotal + iva)
-    putStrLn "\nDetalle de la reservación:"
+    putStrLn "\nDetalle de la reservacion:"
     mostrarReserva r
