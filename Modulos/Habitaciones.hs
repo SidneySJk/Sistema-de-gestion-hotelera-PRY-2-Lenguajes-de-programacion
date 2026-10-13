@@ -3,7 +3,6 @@ import Data.List
 import System.IO
 import Modulos.Auxiliares as Aux
 import Control.Exception (catch, IOException)
-import Distribution.Compat.Prelude (readMaybe)
 import Text.Read (readMaybe)
 
 data TipoHabitacion = TipoHabitacion {
