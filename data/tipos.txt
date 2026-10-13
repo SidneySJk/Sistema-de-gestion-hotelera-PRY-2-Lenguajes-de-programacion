@@ -1,0 +1,4 @@
+Estandar,una habitación con cama queen y aire acondicionado,3
+Deluxe,habitación con cama king y vista al mar,4
+VIP,suite con jacuzzi y terraza,2
+Estandar,repetido,9
