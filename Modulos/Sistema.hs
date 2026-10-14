@@ -2,6 +2,7 @@ module Modulos.Sistema where
 import Modulos.Habitaciones
 import Modulos.Info
 import Modulos.Reservacion
+import Modulos.Estadisticas
 import Modulos.Auxiliares (separarPor)
 import qualified Data.Map as Map
 import Data.Time.Calendar (Day)

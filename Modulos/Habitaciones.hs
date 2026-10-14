@@ -53,3 +53,4 @@ mostrarHabitaciones habitaciones = do
     putStrLn "Lista de habitaciones:\n"
     mapM_ (\h -> putStrLn $ "ID: " ++ show (idHabitacion h) ++ ", Tipo: " ++ tipoHabitacion h) habitaciones
 
+
