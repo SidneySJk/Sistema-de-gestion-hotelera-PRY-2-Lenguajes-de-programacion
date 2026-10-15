@@ -1,5 +1,5 @@
 module Modulos.Estadisticas where
-import Data.Time.Calendar (fromGregorian, toGregorian, dayOfWeek, Day)
+import Data.Time.Calendar (toGregorian, dayOfWeek)
 import Modulos.Reservacion 
 import Data.List (sortBy)
 import Data.Ord (comparing, Down(..))
@@ -15,12 +15,12 @@ diaDeLaSemana :: Int -> String
 diaDeLaSemana n = case n of
     1 -> "Lunes"
     2 -> "Martes"
-    3 -> "Miércoles"
+    3 -> "Miercoles"
     4 -> "Jueves"
     5 -> "Viernes"
-    6 -> "Sábado"
+    6 -> "Sabado"
     7 -> "Domingo"
-    _ -> "Día invalido"
+    _ -> "Dia invalido"
 
 ocupacionPorDia :: [Reserva] -> [(String, Int)]
 ocupacionPorDia reservas =
@@ -42,3 +42,23 @@ mostrarTop3 reservas =
             mapM_ (\(i, (dia, total)) -> putStrLn ("  " ++ show i ++ ". " ++ dia ++ ": " ++ show total ++ " habitaciones ocupadas"))
                   (zip [1 :: Int ..] top)
 
+huespedesPorMesAnio :: Map.Map Int Reserva -> [((Integer, Int), Int)]
+huespedesPorMesAnio reservas =
+    Map.toList (Map.fromListWith (+)
+        [ (mesAnio (reservaEntrada r), totalHuespedes r) | r <- reservaActivas reservas ])
+  where
+    mesAnio d = let (a, m, _) = toGregorian d in (a, m)
+
+mostrarHuespedesPorMesAnio :: Map.Map Int Reserva -> IO ()
+mostrarHuespedesPorMesAnio reservas =
+    case huespedesPorMesAnio reservas of
+        [] -> putStrLn "No hay reservaciones registradas."
+        datos -> do
+            putStrLn "Total de huespedes por mes-anio (segun fecha de entrada):"
+            mapM_ (\((a, m), total) -> putStrLn ("  " ++ dosDigitos m ++ "-" ++ show a
+                                                 ++ ": " ++ show total ++ " huespedes")) datos
+  where
+    dosDigitos m = if m < 10 then '0' : show m else show m
+
+montoRecaudado :: Map.Map Int Reserva -> Double
+montoRecaudado reservas = sum [reservaSubtotal r * 1.13 | r <- reservaActivas reservas]

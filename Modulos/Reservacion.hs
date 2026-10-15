@@ -1,7 +1,7 @@
 module Modulos.Reservacion where
 import Modulos.Habitaciones
 import Modulos.Info
-import Modulos.Auxiliares (separarPor)
+import Modulos.Auxiliares (separarPor, formatearMonto)
 import Data.Time.Calendar
 import Text.Read (readMaybe)
 import qualified Data.Map as Map
@@ -82,9 +82,9 @@ mostrarReserva r = do
     putStrLn $ "Entrada:         " ++ show (reservaEntrada r)
     putStrLn $ "Salida:          " ++ show (reservaSalida r)
     putStrLn $ "Adultos:         " ++ show (reservaAdulos r)
-    putStrLn $ "Niños:           " ++ show (reservaNinos r)
+    putStrLn $ "Ninos:           " ++ show (reservaNinos r)
     putStrLn $ "Estado:          " ++ show (reservaEstado r)
-    putStrLn $ "Total (sin IVA): " ++ show (reservaSubtotal r)
+    putStrLn $ "Total (sin IVA): " ++ formatearMonto (reservaSubtotal r)
     putStrLn "Habitaciones:"
     mapM_ mostrarHabitacionOcupada (reservaHabitacionOcupada r)
     putStrLn "----------------------------------------"
@@ -94,7 +94,7 @@ mostrarHabitacionOcupada h =
     putStrLn $ "  ID " ++ show (habitacionOcupadaId h)
             ++ " | " ++ habitacionOcupadaTipo h
             ++ " | adultos: " ++ show (habitacionOcupadaAdultos h)
-            ++ " | niños: " ++ show (habitacionOcupadaNinos h)
+            ++ " | ninos: " ++ show (habitacionOcupadaNinos h)
 
 parsearFecha :: String -> Maybe Day
 parsearFecha texto =
@@ -185,8 +185,8 @@ mostrarFactura idFactura hotel r = do
     putStrLn $ "Telefono:        " ++ hotelTelefono hotel
     putStrLn $ "Ubicacion:       " ++ hotelProvincia hotel ++ ", " ++ hotelPais hotel
     putStrLn "----------------------------------------"
-    putStrLn $ "Subtotal:        " ++ show subtotal
-    putStrLn $ "IVA (13%):       " ++ show iva
-    putStrLn $ "Total:           " ++ show (subtotal + iva)
+    putStrLn $ "Subtotal:        " ++ formatearMonto subtotal
+    putStrLn $ "IVA (13%):       " ++ formatearMonto iva
+    putStrLn $ "Total:           " ++ formatearMonto (subtotal + iva)
     putStrLn "\nDetalle de la reservacion:"
     mostrarReserva r

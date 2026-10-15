@@ -3,7 +3,7 @@ import Modulos.Habitaciones
 import Modulos.Info
 import Modulos.Reservacion
 import Modulos.Estadisticas
-import Modulos.Auxiliares (separarPor)
+import Modulos.Auxiliares (separarPor, formatearMonto)
 import qualified Data.Map as Map
 import Data.Time.Calendar (Day)
 import Data.Time.LocalTime (getZonedTime)
@@ -68,7 +68,7 @@ cargarSistema = do
                     putStrLn ("Datos cargados desde " ++ archivoSistema ++ ".")
                     return s
                 Nothing -> do
-                    putStrLn ("Aviso: " ++ archivoSistema ++ " esta dañado, se inicia vacio.")
+                    putStrLn ("Aviso: " ++ archivoSistema ++ " esta danado, se inicia vacio.")
                     return sistemaInicial
 
 guardarSistema :: Sistema -> IO Sistema
@@ -224,7 +224,7 @@ opcionCargarTarifas s = do
                     return s
                 else do
                     putStrLn "Tarifas cargadas:"
-                    mapM_ (\(c, m) -> putStrLn ("  " ++ show c ++ ": " ++ show m)) (Map.toList tarifas)
+                    mapM_ (\(c, m) -> putStrLn ("  " ++ show c ++ ": " ++ formatearMonto m)) (Map.toList tarifas)
                     return s { tarifasSistema = tarifas }
 
 opcionConsultarReservas :: Sistema -> IO ()
@@ -251,7 +251,7 @@ opcionEstadoOcupacion s
 menuEstadisticas :: Sistema -> IO ()
 menuEstadisticas s = do
     putStrLn "\n------ Estadisticas ------"
-    putStrLn "1. Total de huespedes por mes-año"
+    putStrLn "1. Total de huespedes por mes-anio"
     putStrLn "2. Habitaciones ocupadas en un dia"
     putStrLn "3. Total de habitaciones no ocupadas en un dia"
     putStrLn "4. Monto recaudado con impuestos"
@@ -259,10 +259,36 @@ menuEstadisticas s = do
     putStrLn "6. Volver"
     op <- preguntar "Ingrese su opcion: "
     case op of
+        "1" -> mostrarHuespedesPorMesAnio (reservasSistema s) >> menuEstadisticas s
+        "2" -> estadisticaOcupadas s >> menuEstadisticas s
+        "3" -> estadisticaNoOcupadas s >> menuEstadisticas s
+        "4" -> putStrLn ("Monto recaudado con impuestos (sin canceladas): "
+                         ++ formatearMonto (montoRecaudado (reservasSistema s))) >> menuEstadisticas s
+        "5" -> mostrarTop3 (reservasSistema s) >> menuEstadisticas s
         "6" -> return ()
-        _ | op `elem` ["1", "2", "3", "4", "5"] ->
-                putStrLn "(estadistica pendiente)" >> menuEstadisticas s
-          | otherwise -> putStrLn "Opcion invalida." >> menuEstadisticas s
+        _   -> putStrLn "Opcion invalida." >> menuEstadisticas s
+
+estadisticaOcupadas :: Sistema -> IO ()
+estadisticaOcupadas s
+    | null (sistemaHabitaciones s) = putStrLn "No hay habitaciones generadas."
+    | otherwise = do
+        d <- pedirFecha "Dia a consultar (AAAA-MM-DD): "
+        let ocupadas = [ (h, r) | h <- sistemaHabitaciones s
+                                , Just r <- [ocupadaEn d (idHabitacion h) (reservasSistema s)] ]
+        if null ocupadas
+            then putStrLn "No hay habitaciones ocupadas ese dia."
+            else do
+                putStrLn ("Habitaciones ocupadas el " ++ show d ++ ":")
+                mapM_ (\(h, r) -> putStrLn ("  ID " ++ show (idHabitacion h) ++ " | " ++ tipoHabitacion h
+                                            ++ " | reserva #" ++ show r)) ocupadas
+
+estadisticaNoOcupadas :: Sistema -> IO ()
+estadisticaNoOcupadas s
+    | null (sistemaHabitaciones s) = putStrLn "No hay habitaciones generadas."
+    | otherwise = do
+        d <- pedirFecha "Dia a consultar (AAAA-MM-DD): "
+        let libres = habitacionesDisponibles d (sistemaHabitaciones s) (reservasSistema s)
+        putStrLn ("Total de habitaciones no ocupadas el " ++ show d ++ ": " ++ show (length libres))
 
 -- ============================================================
 -- Menu general
@@ -306,7 +332,7 @@ opcionReservar s
         entrada <- pedirFecha "Fecha de entrada (AAAA-MM-DD): "
         salida  <- pedirFecha "Fecha de salida (AAAA-MM-DD): "
         totalA  <- pedirEntero "Total de adultos: " (>= 0) "Debe ser un numero mayor o igual a 0."
-        totalN  <- pedirEntero "Total de niños: " (>= 0) "Debe ser un numero mayor o igual a 0."
+        totalN  <- pedirEntero "Total de ninos: " (>= 0) "Debe ser un numero mayor o igual a 0."
         cant    <- pedirEntero "Cantidad de habitaciones: " (>= 1) "Debe ser al menos 1."
         putStrLn ("Tipos disponibles: " ++ unwords (Map.keys (sistemaTipos s)))
         solicitudes <- mapM pedirSolicitud [1 .. cant]
@@ -326,7 +352,7 @@ opcionReservar s
         putStrLn ("\nHabitacion " ++ show i)
         t <- preguntar "Tipo: "
         a <- pedirEntero "Adultos: " (>= 0) "Debe ser un numero mayor o igual a 0."
-        n <- pedirEntero "Niños: " (>= 0) "Debe ser un numero mayor o igual a 0."
+        n <- pedirEntero "Ninos: " (>= 0) "Debe ser un numero mayor o igual a 0."
         return (t, a, n)
 
 opcionAnular :: Sistema -> IO Sistema
